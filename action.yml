@@ -22,6 +22,7 @@ inputs:
   slim:
     description: 'If enabled, run slim tests'
     required: false
+    default: ''
   packages:
     description: 'Job-specific packages to install'
     required: false
@@ -33,14 +34,14 @@ runs:
       run: |
         JOB="${{inputs.target}}/${{inputs.python}}${{inputs.other}}"
         echo "GHA_JOBNAME=$JOB" | sed 's|/|_|g' >> $GITHUB_ENV
-        if [[ ${{ inputs.slim }} != '' ]]; then
+        if [[ ${{ inputs.slim }} != "" ]]; then
             echo "GHA_JOBGROUP=${{inputs.target}}" >> $GITHUB_ENV
         else
             echo "GHA_JOBGROUP=other" >> $GITHUB_ENV
         fi
         # Note: pandas 1.0.3 causes gams 29.1.0 import to fail in python 3.8
         EXTRAS=tests
-        if [[ ${{ inputs.slim }} != '' ]]; then
+        if [[ ${{ inputs.slim }} != "" ]]; then
             EXTRAS="$EXTRAS,docs,optional"
         fi
         echo "EXTRAS=$EXTRAS" >> $GITHUB_ENV
@@ -179,7 +180,7 @@ runs:
         python -m pip install --cache-dir cache/pip ${PACKAGES}
         python -m pip install --cache-dir cache/pip pymysql || \
             python -m pip install --cache-dir cache/pip pymysql
-        if [[ ${{ inputs.slim }} != '' ]]; then
+        if [[ ${{ inputs.slim }} != "" ]]; then
             python -m pip install --cache-dir cache/pip cplex docplex \
                 || echo "WARNING: CPLEX Community Edition is not available"
             python -m pip install --cache-dir cache/pip \
@@ -257,7 +258,7 @@ runs:
         # Note: this will fail the build if any installation fails (or
         # possibly if it outputs messages to stderr)
         conda install --update-deps -q -y $CONDA_DEPENDENCIES
-        if [[ ${{ inputs.slim }} != '' ]]; then
+        if [[ ${{ inputs.slim }} != "" ]]; then
             PYVER=$(echo "py${{inputs.python}}" | sed 's/\.//g')
             echo "Installing for $PYVER"
             for PKG in 'cplex>=12.10' docplex 'gurobi=10.0.3' xpress cyipopt pymumps scip; do
