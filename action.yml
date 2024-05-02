@@ -22,7 +22,6 @@ inputs:
   slim:
     description: 'If enabled, run slim tests'
     required: false
-    default: ''
   packages:
     description: 'Job-specific packages to install'
     required: false
@@ -34,14 +33,14 @@ runs:
       run: |
         JOB="${{inputs.target}}/${{inputs.python}}${{inputs.other}}"
         echo "GHA_JOBNAME=$JOB" | sed 's|/|_|g' >> $GITHUB_ENV
-        if [[ ${{ inputs.slim }} != "" ]]; then
+        if test -z "${{matrix.slim}}"; then
             echo "GHA_JOBGROUP=${{inputs.target}}" >> $GITHUB_ENV
         else
             echo "GHA_JOBGROUP=other" >> $GITHUB_ENV
         fi
         # Note: pandas 1.0.3 causes gams 29.1.0 import to fail in python 3.8
         EXTRAS=tests
-        if [[ ${{ inputs.slim }} != "" ]]; then
+        if test -z "${{inputs.slim}}"; then
             EXTRAS="$EXTRAS,docs,optional"
         fi
         echo "EXTRAS=$EXTRAS" >> $GITHUB_ENV
@@ -67,7 +66,7 @@ runs:
 
     - name: TPL package download cache
       uses: actions/cache@v4
-      if: ${{ inputs.slim != '' }}
+      if: ${{ ! inputs.slim }}
       id: download-cache
       with:
         path: cache/download
@@ -180,7 +179,7 @@ runs:
         python -m pip install --cache-dir cache/pip ${PACKAGES}
         python -m pip install --cache-dir cache/pip pymysql || \
             python -m pip install --cache-dir cache/pip pymysql
-        if [[ ${{ inputs.slim }} != "" ]]; then
+        if test -z "${{matrix.slim}}"; then
             python -m pip install --cache-dir cache/pip cplex docplex \
                 || echo "WARNING: CPLEX Community Edition is not available"
             python -m pip install --cache-dir cache/pip \
@@ -258,7 +257,7 @@ runs:
         # Note: this will fail the build if any installation fails (or
         # possibly if it outputs messages to stderr)
         conda install --update-deps -q -y $CONDA_DEPENDENCIES
-        if [[ ${{ inputs.slim }} != "" ]]; then
+        if test -z "${{matrix.slim}}"; then
             PYVER=$(echo "py${{inputs.python}}" | sed 's/\.//g')
             echo "Installing for $PYVER"
             for PKG in 'cplex>=12.10' docplex 'gurobi=10.0.3' xpress cyipopt pymumps scip; do
@@ -325,7 +324,7 @@ runs:
         echo "DOWNLOAD_DIR=$DOWNLOAD_DIR" >> $GITHUB_ENV
 
     - name: Install Ipopt
-      if: ${{ inputs.slim != '' }}
+      if: ${{ ! inputs.slim }}
       shell: bash -l {0}
       run: |
         IPOPT_DIR=$TPL_DIR/ipopt
@@ -361,7 +360,7 @@ runs:
         ls -l $IPOPT_DIR
 
     - name: Install GAMS
-      if: ${{ inputs.slim != '' }}
+      if: ${{ ! inputs.slim }}
       # We install using Powershell because the GAMS installer hangs
       # when launched from bash on Windows
       shell: pwsh
@@ -405,7 +404,7 @@ runs:
         ls -l $GAMS_DIR
 
     - name: Install GAMS Python bindings
-      if: ${{ inputs.slim != '' }}
+      if: ${{ ! inputs.slim }}
       shell: bash -l {0}
       run: |
         GAMS_DIR="${env:TPL_DIR}/gams"
@@ -419,7 +418,7 @@ runs:
         fi
 
     - name: Install BARON
-      if: ${{ inputs.slim != '' }}
+      if: ${{ ! inputs.slim }}
       shell: pwsh
       run: |
         $BARON_DIR = "${env:TPL_DIR}/baron"
@@ -455,7 +454,7 @@ runs:
         ls -l $BARON_DIR
 
     - name: Install GJH_ASL_JSON
-      if: ${{ inputs.slim != '' && inputs.target != 'win' }}
+      if: ${{ ! inputs.slim && inputs.target != 'win' }}
       shell: bash -l {0}
       run: |
         GJH_DIR="$TPL_DIR/gjh"
@@ -498,7 +497,7 @@ runs:
     # this has to be done after Pyomo is installed because highspy 
     # depends on pyomo's find_library function
     - name: Install HiGHS
-      if: ${{ inputs.slim != '' }}
+      if: ${{ ! inputs.slim }}
       shell: bash
       run: |
         $PYTHON_EXE -m pip install --cache-dir cache/pip highspy \
@@ -524,7 +523,7 @@ runs:
             > ${SITE_PACKAGES}/run_coverage_at_startup.pth
 
     - name: Download and install extensions
-      if: ${{ inputs.slim != '' }}
+      if: ${{ ! inputs.slim }}
       shell: bash -l {0}
       run: |
         echo ""
