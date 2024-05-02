@@ -123,7 +123,7 @@ jobs:
         slim: ${{ matrix.slim }}
 
     - name: Environment verification
-      runs: |
+      run: |
         env
         ls -la
         python -m pip list | sed 's/^/    /'
