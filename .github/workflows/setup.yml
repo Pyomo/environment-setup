@@ -121,3 +121,12 @@ jobs:
         packages: ${{ matrix.PACKAGES }}
         other: ${{ matrix.other }}
         slim: ${{ matrix.slim }}
+
+    - name: Environment verification:
+      runs: |
+        env
+        ls -la
+        python -m pip list | sed 's/^/    /'
+        pyomo help --solvers || exit 1
+        pyomo help --transformations || exit 1
+        pyomo help --writers || exit 1
