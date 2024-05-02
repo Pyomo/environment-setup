@@ -44,20 +44,23 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-13, windows-latest]
-        python: [ 3.8, 3.9, '3.10', '3.11', '3.12' ]
+        python: [ '3.12' ]
         other: [""]
         category: [""]
 
         include:
         - os: ubuntu-latest
+          python: '3.12'
           TARGET: linux
           PYENV: pip
 
         - os: macos-13
+          python: '3.10'
           TARGET: osx
           PYENV: pip
 
         - os: windows-latest
+          python: 3.9
           TARGET: win
           PYENV: conda
           PACKAGES: glpk pytest-qt filelock
@@ -71,21 +74,44 @@ jobs:
           PACKAGES: pytest-qt
 
         - os: ubuntu-latest
-          python: 3.8
-          other: /slim
-          slim: 1
+          python: '3.10'
+          other: /mpi
+          mpi: 3
+          skip_doctest: 1
+          TARGET: linux
+          PYENV: conda
+          PACKAGES: openmpi mpi4py
+
+        - os: ubuntu-latest
+          python: '3.10'
+          other: /cython
+          setup_options: --with-cython
           skip_doctest: 1
           TARGET: linux
           PYENV: pip
+          PACKAGES: cython
+
+        - os: windows-latest
+          python: 3.8
+          other: /pip
+          skip_doctest: 1
+          TARGET: win
+          PYENV: pip
 
     steps:
+    - name: Checkout action source
+      uses: actions/checkout@v4
+      with:
+        path: 'environment-action'
+
+
     - name: Checkout Pyomo source
       uses: actions/checkout@v4
       with:
         repository: pyomo/pyomo
 
     - name: Pyomo environment setup action
-      uses: ./
+      uses: ./environment-action
       with:
         target: ${{ matrix.TARGET }}
         python: ${{ matrix.python }}
