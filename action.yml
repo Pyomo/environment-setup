@@ -29,6 +29,7 @@ runs:
   using: 'composite'
   steps:
     - name: Configure job parameters
+      shell: bash -l {0}
       run: |
         JOB="${{inputs.target}}/${{inputs.python}}${{inputs.other}}"
         echo "GHA_JOBNAME=$JOB" | sed 's|/|_|g' >> $GITHUB_ENV
@@ -72,6 +73,7 @@ runs:
         key: download-${{env.CACHE_VER}}.0-${{runner.os}}
 
     - name: Configure curl
+      shell: bash -l {0}
       run: |
         CURLRC="$(cat <<EOF
            retry = 0
@@ -84,6 +86,7 @@ runs:
 
     - name: Update OSX
       if: inputs.target == 'osx'
+      shell: bash -l {0}
       run: |
         mkdir -p ${GITHUB_WORKSPACE}/cache/os
         export HOMEBREW_CACHE=${GITHUB_WORKSPACE}/cache/os
@@ -100,6 +103,7 @@ runs:
 
     - name: Update Linux
       if: inputs.target == 'linux'
+      shell: bash -l {0}
       run: |
         mkdir -p ${GITHUB_WORKSPACE}/cache/os
         # Notes:
@@ -111,6 +115,7 @@ runs:
 
     - name: Update Windows
       if: inputs.target == 'win'
+      shell: bash -l {0}
       run: |
         echo "SETUPTOOLS_USE_DISTUTILS=local" >> $GITHUB_ENV
 
@@ -197,6 +202,7 @@ runs:
 
     - name: Install Python packages (conda)
       if: inputs.pyenv == 'conda'
+      shell: bash -l {0}
       run: |
         # Set up environment
         conda config --set always_yes yes
@@ -308,6 +314,7 @@ runs:
         conda list | sed 's/^/    /'
 
     - name: Setup TPL package directories
+      shell: bash -l {0}
       run: |
         TPL_DIR="${GITHUB_WORKSPACE}/cache/tpl"
         mkdir -p "$TPL_DIR"
@@ -318,6 +325,7 @@ runs:
 
     - name: Install Ipopt
       if: ${{ inputs.slim != '' }}
+      shell: bash -l {0}
       run: |
         IPOPT_DIR=$TPL_DIR/ipopt
         echo "$IPOPT_DIR" >> $GITHUB_PATH
@@ -397,6 +405,7 @@ runs:
 
     - name: Install GAMS Python bindings
       if: ${{ inputs.slim != '' }}
+      shell: bash -l {0}
       run: |
         GAMS_DIR="${env:TPL_DIR}/gams"
         py_ver=$($PYTHON_EXE -c 'import sys;v="_%s%s" % sys.version_info[:2] \
@@ -446,6 +455,7 @@ runs:
 
     - name: Install GJH_ASL_JSON
       if: ${{ inputs.slim != '' && inputs.target != 'win' }}
+      shell: bash -l {0}
       run: |
         GJH_DIR="$TPL_DIR/gjh"
         echo "${GJH_DIR}" >> $GITHUB_PATH
@@ -469,6 +479,7 @@ runs:
         ls -l $GJH_DIR
 
     - name: Install Pyomo
+      shell: bash -l {0}
       run: |
         echo ""
         echo "Clone Pyomo-model-libraries..."
@@ -493,6 +504,7 @@ runs:
             || echo "WARNING: highspy is not available"
 
     - name: Set up coverage tracking
+      shell: bash -l {0}
       run: |
         if test "${{inputs.target}}" == win; then
             COVERAGE_BASE=${GITHUB_WORKSPACE}\\.cover
@@ -512,6 +524,7 @@ runs:
 
     - name: Download and install extensions
       if: ${{ inputs.slim != '' }}
+      shell: bash -l {0}
       run: |
         echo ""
         echo "Pyomo download-extensions"
