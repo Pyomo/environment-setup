@@ -99,15 +99,15 @@ jobs:
           PYENV: pip
 
     steps:
-    - name: Checkout action source
-      uses: actions/checkout@v4
-      with:
-        path: 'environment-action'
-
     - name: Checkout Pyomo source
       uses: actions/checkout@v4
       with:
         repository: pyomo/pyomo
+
+    - name: Checkout action source
+      uses: actions/checkout@v4
+      with:
+        path: 'environment-action'
 
     - name: Environment check
       run: ls -la
