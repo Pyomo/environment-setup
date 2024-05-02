@@ -122,7 +122,7 @@ jobs:
         other: ${{ matrix.other }}
         slim: ${{ matrix.slim }}
 
-    - name: Environment verification:
+    - name: Environment verification
       runs: |
         env
         ls -la
