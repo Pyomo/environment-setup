@@ -1,0 +1,94 @@
+name: Pyomo Environment Setup
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  workflow_dispatch:
+    inputs:
+      git-ref:
+        description: Git Hash (Optional)
+        required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+env:
+  PYTHONWARNINGS: ignore::UserWarning
+  PYTHON_CORE_PKGS: wheel
+  PYPI_ONLY: z3-solver
+  PYPY_EXCLUDE: scipy numdifftools seaborn statsmodels
+  CACHE_VER: v221013.1
+  NEOS_EMAIL: tests@pyomo.org
+  SRC_REF: ${{ github.head_ref || github.ref }}
+
+  build:
+    name: ${{ matrix.TARGET }}/${{ matrix.python }}${{ matrix.other }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-13, windows-latest]
+        python: [ 3.8, 3.9, '3.10', '3.11', '3.12' ]
+        other: [""]
+        category: [""]
+
+        include:
+        - os: ubuntu-latest
+          TARGET: linux
+          PYENV: pip
+
+        - os: macos-13
+          TARGET: osx
+          PYENV: pip
+
+        - os: windows-latest
+          TARGET: win
+          PYENV: conda
+          PACKAGES: glpk pytest-qt filelock
+
+        - os: ubuntu-latest
+          python: '3.11'
+          other: /conda
+          skip_doctest: 1
+          TARGET: linux
+          PYENV: conda
+          PACKAGES: pytest-qt
+
+        - os: ubuntu-latest
+          python: 3.8
+          other: /slim
+          slim: 1
+          skip_doctest: 1
+          TARGET: linux
+          PYENV: pip
+
+    steps:
+    - name: Checkout Pyomo source
+      uses: actions/checkout@v4
+      with:
+        repository: pyomo/pyomo
+
+    - name: Pyomo environment setup action
+      uses: ./
+      with:
+        target: ${{ matrix.TARGET }}
+        python: ${{ matrix.python }}
+        pyenv: ${{ matrix.PYENV }}
+        packages: ${{ matrix.PACKAGES }}
+        other: ${{ matrix.other }}
+        slim: ${{ matrix.slim }}
