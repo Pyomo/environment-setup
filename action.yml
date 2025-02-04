@@ -1,8 +1,8 @@
 name: 'Pyomo Testing Environment Setup'
 description: 'Set up the Pyomo testing environment'
 branding:
-  icon: 'layers'
-  color: 'purple'
+  icon: 'sunrise'
+  color: 'orange'
 inputs:
   target:
     description: 'Target operating system (linux, osx, win)'
